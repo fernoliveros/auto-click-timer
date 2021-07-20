@@ -3,12 +3,22 @@
     <link rel="stylesheet" href="button.css">
   </head>
   <body>
+    <div class="timer-inputs">
+      <div>
+        <label for="timer-minutes">Minutes</label>
+        <input id="timer-minutes" type="number" value="2">
+      </div>
+      <div>
+        <label for="timer-seconds">Seconds</label>
+        <input id="timer-seconds" type="number" value="3">
+      </div>
+    </div>
     <div class="btn-wrapper">
-      <button id="start">Start</button>
-      <button id="stop">Stop</button>
+      <button id="start" class="start-button">Start</button>
+      <button id="stop" class="stop-button" disabled="true">Stop</button>
     </div>
     <div id="text"></div>
-    <strong class="countdown">Seconds until next click:
+    <strong class="countdown">Time until next click:
       <p id="seconds-left"></p>
     </strong>
     <script src="popup.js"></script>

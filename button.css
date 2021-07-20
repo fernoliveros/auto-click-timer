@@ -1,21 +1,32 @@
+body {
+  width: 200px;
+}
+
 button {
   margin: 10px;
   border: 1px solid black;
   border-radius: 3px;
   cursor: pointer;
   padding: 5px;
+  flex: 1;
 }
+
 
 .btn-wrapper {
   display: flex;
 }
 
-#stop {
+.stop-button {
   background-color: red;
 }
 
-#start {
+.start-button {
   background-color: green;
+}
+
+button:disabled {
+  background-color: gray;
+  cursor: not-allowed;
 }
 
 button.current {
@@ -32,4 +43,13 @@ button.current {
 
 #seconds-left {
   font-size: 20px;
+}
+
+.timer-inputs {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.timer-inputs input {
+  width: 40px;
 }
