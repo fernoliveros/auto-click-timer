@@ -25,8 +25,8 @@ function resetCountDown() {
 }
 
 function setTimerStartValue() {
-  const mins = timerMin.valueAsNumber
-  const secs = timerSec.valueAsNumber
+  const mins = timerMin.valueAsNumber ? timerMin.valueAsNumber : 0
+  const secs = timerSec.valueAsNumber ? timerSec.valueAsNumber : 0
   interval = (mins * 60) + secs
   resetCountDown()
 
