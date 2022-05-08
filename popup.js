@@ -1,20 +1,23 @@
 
 let startButton = document.getElementById("start");
 let timeLeftElement = document.getElementById("seconds-left");
-let intervalIds = []
-let interval = 122 // seconds
-let countdownTime = 122 // seconds
 let toggle = true
-let latestTimeout
-
-window.onload = checkAndClick()
+let intervalId = 0
 
 function setTimerStartValue() {
-  setTimeout(function keepCalling() {
+  intervalId = setInterval(() => {
+    // get local storage and set interval to restart the check and click
     checkAndClick();
-     latestTimeout = setTimeout(keepCalling(), 1000)
-  }, 1000) 
+    updateTimerValue();
+  }, 3000)
 }
+
+function updateTimerValue() {
+  chrome.storage.local.get(['timeLeftText'], function(res) {
+   timeLeftElement.textContent = res.timeLeftText
+  });
+}
+
 
 function toggleDisabled(startDisabled) {
   if (startDisabled) {
@@ -31,15 +34,20 @@ async function checkAndClick() {
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
     function: () => {
-      const min = document.querySelector('#timer__minutes').textContent,
-      secTens = document.querySelector('#timer__seconds--tens').textContent,
-      secOnes = document.querySelector('#timer__seconds--ones').textContent;
-      const timeLeftText = `${min}m ${secTens}${secOnes}s`
-      timeLeftElement.textContent = timeLeftText
-      
-      if (min == '0' && secTens == '0' && secOnes == '0') {
-        document.querySelector('.course-control--forward').click()
-      }
+        const min = document.querySelector('#timer__minutes').textContent,
+        secTens = document.querySelector('#timer__seconds--tens').textContent,
+        secOnes = document.querySelector('#timer__seconds--ones').textContent;
+        let timeLeftText = ''
+        timeLeftText = `${min}m ${secTens}${secOnes}s`
+        const secondsLeft = (Number(min) * 60) + (Number(secTens) * 10) + Number(secOnes)
+        
+        chrome.storage.local.set({secondsLeft: secondsLeft, timeLeftText: timeLeftText}, function() {
+          console.log('Setting Seconds Left: ' + secondsLeft);
+        });
+
+        if (min == '0' && secTens == '0' && secOnes == '0') {
+          document.querySelector('.course-control--forward').click()
+        }  
     },
   });  
 }
@@ -54,10 +62,5 @@ let stopButton = document.getElementById("stop");
 stopButton.addEventListener("click", async () => {
   
   toggleDisabled(false)
-  
-  if (latestTimeout) {
-    clearTimeout(latestTimeout)
-  } else {
-    console.error("NO TIMEOUT")
-  }
+  clearTimeout(intervalId)
 });
