@@ -1,38 +1,19 @@
 
 let startButton = document.getElementById("start");
 let timeLeftElement = document.getElementById("seconds-left");
-let timerMin = document.getElementById("timer-minutes");
-let timerSec = document.getElementById("timer-seconds");
 let intervalIds = []
 let interval = 122 // seconds
 let countdownTime = 122 // seconds
 let toggle = true
+let latestTimeout
 
-window.onload = function() {
-  chrome.storage.local.get(['timerMin','timerSec'], function(res) {
-    console.log('Stored timerMin: ' + res.timerMin, ' timerSec: ', res.timerSec);
-    if (res.timerMin) {
-      timerMin.value = res.timerMin
-    }
-    if (res.timerSec) {
-      timerSec.value = res.timerSec
-    }
-  });
-}
-
-function resetCountDown() {
-  countdownTime = JSON.parse(JSON.stringify(interval))
-}
+window.onload = checkAndClick()
 
 function setTimerStartValue() {
-  const mins = timerMin.valueAsNumber ? timerMin.valueAsNumber : 0
-  const secs = timerSec.valueAsNumber ? timerSec.valueAsNumber : 0
-  interval = (mins * 60) + secs
-  resetCountDown()
-
-  chrome.storage.local.set({timerMin: mins, timerSec: secs}, function() {
-    console.log('Stored timerMin: ' + mins, ' timerSec: ', secs);
-  });
+  setTimeout(function keepCalling() {
+    checkAndClick();
+     latestTimeout = setTimeout(keepCalling(), 1000)
+  }, 1000) 
 }
 
 function toggleDisabled(startDisabled) {
@@ -45,34 +26,27 @@ function toggleDisabled(startDisabled) {
   }
 }
 
-async function click() {
+async function checkAndClick() {
   let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
     function: () => {
-      document.querySelector('.course-control--forward').click()
+      const min = document.querySelector('#timer__minutes').textContent,
+      secTens = document.querySelector('#timer__seconds--tens').textContent,
+      secOnes = document.querySelector('#timer__seconds--ones').textContent;
+      const timeLeftText = `${min}m ${secTens}${secOnes}s`
+      timeLeftElement.textContent = timeLeftText
+      
+      if (min == '0' && secTens == '0' && secOnes == '0') {
+        document.querySelector('.course-control--forward').click()
+      }
     },
-  });
-  resetCountDown();
-  
+  });  
 }
 
 startButton.addEventListener("click", async () => {
-
   toggleDisabled(true)
   setTimerStartValue()
-
-  intervalIds.push(setInterval(() => {
-    click()
-  }, interval * 1000));
-
-  intervalIds.push(setInterval(() => {
-    countdownTime--;
-    const minutesLeft = Math.floor(countdownTime / 60).toString()
-    const secondsLeft = (countdownTime - (minutesLeft * 60)).toString()
-    const timeLeftText = `${minutesLeft}m ${secondsLeft.length === 1 ? '0' + secondsLeft : secondsLeft}s`
-    timeLeftElement.textContent = timeLeftText
-  }, 1000));
 });
 
 let stopButton = document.getElementById("stop");
@@ -81,13 +55,9 @@ stopButton.addEventListener("click", async () => {
   
   toggleDisabled(false)
   
-  if (intervalIds.length > 0) {
-    for(let i of intervalIds) {
-      clearInterval(i)
-    }
-    intervalIds = [];
-    resetCountDown();
+  if (latestTimeout) {
+    clearTimeout(latestTimeout)
   } else {
-    console.error("NO INTERVAL")
+    console.error("NO TIMEOUT")
   }
 });
